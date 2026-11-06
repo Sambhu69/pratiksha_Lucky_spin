@@ -139,11 +139,11 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Toast Alert */}
       {toastMsg && (
         <div
-          className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl text-sm font-semibold border ${
+          className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl text-xs sm:text-sm font-semibold border ${
             toastMsg.type === 'success'
               ? 'bg-emerald-950/90 text-emerald-200 border-emerald-500/50'
               : 'bg-red-950/90 text-red-200 border-red-500/50'
@@ -154,15 +154,15 @@ export default function AdminDashboardPage() {
       )}
 
       {/* Campaign Status Banner */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg">
         <div>
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+          <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">
             Campaign Control
           </span>
-          <h2 className="text-xl font-black text-white flex items-center gap-2">
+          <h2 className="text-lg sm:text-xl font-black text-white flex flex-wrap items-center gap-2 mt-0.5">
             {metrics?.campaignName || 'Grand Promotional Lucky Spin'}
             <span
-              className={`px-2.5 py-0.5 rounded text-xs font-black uppercase tracking-wider ${
+              className={`px-2 py-0.5 rounded text-[10px] sm:text-xs font-black uppercase tracking-wider ${
                 metrics?.campaignStatus === 'ACTIVE'
                   ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                   : metrics?.campaignStatus === 'PAUSED'
@@ -179,7 +179,7 @@ export default function AdminDashboardPage() {
           {metrics?.campaignStatus !== 'ACTIVE' && (
             <button
               onClick={() => handleUpdateStatus('ACTIVE')}
-              className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition"
+              className="flex-1 sm:flex-none px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition text-center"
             >
               Resume (ACTIVE)
             </button>
@@ -187,7 +187,7 @@ export default function AdminDashboardPage() {
           {metrics?.campaignStatus === 'ACTIVE' && (
             <button
               onClick={() => handleUpdateStatus('PAUSED')}
-              className="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-xs font-bold text-white transition"
+              className="flex-1 sm:flex-none px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-xs font-bold text-white transition text-center"
             >
               Pause Event
             </button>
@@ -195,7 +195,7 @@ export default function AdminDashboardPage() {
           {metrics?.campaignStatus !== 'CLOSED' && (
             <button
               onClick={() => handleUpdateStatus('CLOSED')}
-              className="px-3.5 py-1.5 rounded-lg bg-red-800 hover:bg-red-700 text-xs font-bold text-white transition"
+              className="flex-1 sm:flex-none px-3.5 py-1.5 rounded-lg bg-red-800 hover:bg-red-700 text-xs font-bold text-white transition text-center"
             >
               Close Campaign
             </button>
@@ -204,65 +204,65 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* TOP KPI CARDS */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800">
+          <p className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Total Customers
           </p>
-          <p className="text-3xl font-black text-white mt-1">
+          <p className="text-2xl sm:text-3xl font-black text-white mt-1">
             {metrics?.totalRegistered ?? 0}
           </p>
-          <p className="text-[11px] text-slate-500 mt-1">Verified at counter</p>
+          <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">Verified</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800">
+          <p className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Spins Executed
           </p>
-          <p className="text-3xl font-black text-amber-400 mt-1">
+          <p className="text-2xl sm:text-3xl font-black text-amber-400 mt-1">
             {metrics?.totalSpins ?? 0}
           </p>
-          <p className="text-[11px] text-slate-500 mt-1">
-            Common: {metrics?.commonDistributed ?? 0} | Premium: {metrics?.premiumDistributed ?? 0}
+          <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 truncate">
+            C: {metrics?.commonDistributed ?? 0} | P: {metrics?.premiumDistributed ?? 0}
           </p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800">
+          <p className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Unclaimed Gifts
           </p>
-          <p className="text-3xl font-black text-orange-400 mt-1">
+          <p className="text-2xl sm:text-3xl font-black text-orange-400 mt-1">
             {metrics?.unclaimedSpinsCount ?? 0}
           </p>
-          <p className="text-[11px] text-orange-400/70 mt-1">Awaiting handover</p>
+          <p className="text-[10px] sm:text-[11px] text-orange-400/70 mt-0.5">Awaiting handover</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800">
+          <p className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Total Stock Left
           </p>
-          <p className="text-3xl font-black text-emerald-400 mt-1">
+          <p className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
             {metrics?.totalGiftsRemaining ?? 0}
           </p>
-          <p className="text-[11px] text-slate-500 mt-1">Physical gifts remaining</p>
+          <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">Gifts remaining</p>
         </div>
       </div>
 
       {/* LIVE PROBABILITY TRANSPARENCY TABLE */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-lg space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3 className="text-lg font-black text-white">
+            <h3 className="text-base sm:text-lg font-black text-white">
               Wheel Segments & Dynamic Probability Table
             </h3>
             <p className="text-xs text-slate-400">
-              Live probabilities recalculate dynamically based on remaining stock. Zero-stock items are automatically excluded.
+              Live probabilities recalculate dynamically based on remaining stock.
             </p>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+          <table className="w-full text-left text-xs sm:text-sm text-slate-300 min-w-[600px]">
             <thead className="bg-slate-950/60 text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800">
               <tr>
                 <th className="py-3 px-4">Segment #</th>
@@ -366,10 +366,10 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* PHYSICAL GIFT CLAIM DESK & RECENT SPINS */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-lg space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <h3 className="text-lg font-black text-white">
+            <h3 className="text-base sm:text-lg font-black text-white">
               Counter Voucher Claim & Handover Desk
             </h3>
             <p className="text-xs text-slate-400">
@@ -377,13 +377,13 @@ export default function AdminDashboardPage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 sm:gap-3">
             <input
               type="text"
               placeholder="Search code, phone, invoice..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-3 py-1.5 text-xs bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 w-64 focus:outline-none focus:border-amber-400"
+              className="px-3 py-1.5 text-xs bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 w-full xs:w-60 focus:outline-none focus:border-amber-400"
             />
 
             <select
@@ -398,8 +398,8 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+          <table className="w-full text-left text-xs sm:text-sm text-slate-300 min-w-[700px]">
             <thead className="bg-slate-950/60 text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800">
               <tr>
                 <th className="py-3 px-4">Verification Code</th>

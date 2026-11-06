@@ -58,41 +58,41 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
       {/* Admin Navbar */}
-      <header className="border-b border-slate-800 bg-slate-900/90 backdrop-blur px-6 py-4 sticky top-0 z-40 shadow-md">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+      <header className="border-b border-slate-800 bg-slate-900/90 backdrop-blur px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-40 shadow-md">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             <a href="/admin/dashboard" className="flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400 font-black flex items-center justify-center text-sm">
+              <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400 font-black flex items-center justify-center text-xs sm:text-sm shrink-0">
                 PKS
               </span>
               <div>
-                <h1 className="text-base font-black text-white leading-tight">
+                <h1 className="text-sm sm:text-base font-black text-white leading-tight truncate max-w-[150px] xs:max-w-none">
                   Pratikshya Kitchen Suppliers
                 </h1>
-                <p className="text-[11px] text-amber-400 uppercase tracking-wider font-semibold">
-                  Management Console • Pokhara
+                <p className="text-[10px] sm:text-[11px] text-amber-400 uppercase tracking-wider font-semibold">
+                  Console • Pokhara
                 </p>
               </div>
             </a>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             {/* Nepal Time Clock */}
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs font-mono text-slate-300">
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs font-mono text-slate-300">
               <span className="text-slate-500">NPT:</span>
               <span className="text-amber-400 font-bold">{currentTime || '--:--:--'}</span>
             </div>
 
             {/* Admin identity pill */}
             {adminUser && (
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-slate-800 text-slate-200 border border-slate-700">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-slate-800 text-slate-200 border border-slate-700 max-w-[100px] sm:max-w-none truncate">
                   {adminUser.role === 'SUPER_ADMIN' ? '👑 ' : '👤 '}
                   {adminUser.username}
                 </span>
                 <button
                   onClick={handleLogout}
-                  className="text-xs text-red-400 hover:text-red-300 font-medium px-2 py-1 rounded hover:bg-red-950/30 transition"
+                  className="text-[11px] sm:text-xs text-red-400 hover:text-red-300 font-medium px-1.5 sm:px-2 py-0.5 sm:py-1 rounded hover:bg-red-950/30 transition"
                 >
                   Logout
                 </button>
@@ -101,9 +101,9 @@ export default function AdminLayout({
 
             <a
               href="/"
-              className="text-xs text-amber-400 hover:underline font-semibold"
+              className="text-xs text-amber-400 hover:underline font-semibold hidden xs:inline"
             >
-              Open Kiosk →
+              Kiosk →
             </a>
           </div>
         </div>

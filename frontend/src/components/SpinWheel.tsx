@@ -65,13 +65,13 @@ export default function SpinWheel({
   }, [isSpinning, targetRewardNumber]);
 
   return (
-    <div className="relative w-80 h-80 sm:w-96 sm:h-96 md:w-[420px] md:h-[420px] mx-auto select-none">
+    <div className="relative w-[280px] h-[280px] xs:w-72 xs:h-72 sm:w-88 sm:h-88 md:w-[420px] md:h-[420px] max-w-[90vw] max-h-[90vw] mx-auto select-none aspect-square">
       {/* Outer Glow Ring */}
       <div className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 blur-xl opacity-30 animate-pulse pointer-events-none" />
 
       {/* Top Fixed Needle Pointer */}
-      <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-30 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
-        <svg width="44" height="48" viewBox="0 0 44 48" fill="none">
+      <div className="absolute -top-3 sm:-top-4 left-1/2 -translate-x-1/2 z-30 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
+        <svg className="w-9 h-10 sm:w-11 sm:h-12" viewBox="0 0 44 48" fill="none">
           <path
             d="M22 48L11 12C9 6 13 0 20 0H24C31 0 35 6 33 12L22 48Z"
             fill="url(#pointer-gradient)"
@@ -91,7 +91,7 @@ export default function SpinWheel({
 
       {/* Rotating Wheel Container */}
       <div
-        className="w-full h-full rounded-full border-8 border-amber-500/80 shadow-[0_0_40px_rgba(245,158,11,0.4)] overflow-hidden"
+        className="w-full h-full rounded-full border-4 sm:border-8 border-amber-500/80 shadow-[0_0_30px_rgba(245,158,11,0.4)] sm:shadow-[0_0_40px_rgba(245,158,11,0.4)] overflow-hidden"
         style={{
           transform: `rotate(${currentRotation}deg)`,
           transition: isSpinning
@@ -161,9 +161,9 @@ export default function SpinWheel({
       </div>
 
       {/* Central Hub Plate */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 border-4 border-slate-900 shadow-2xl flex items-center justify-center pointer-events-none z-20">
-        <div className="w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center border border-amber-400">
-          <span className="text-amber-400 text-xs font-black tracking-tighter">PKS</span>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 border-2 sm:border-4 border-slate-900 shadow-2xl flex items-center justify-center pointer-events-none z-20">
+        <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-slate-900 flex items-center justify-center border border-amber-400">
+          <span className="text-amber-400 text-[10px] sm:text-xs font-black tracking-tighter">PKS</span>
         </div>
       </div>
     </div>

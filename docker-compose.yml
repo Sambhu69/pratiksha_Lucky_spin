@@ -1,0 +1,26 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pratikshya_spin_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-pratikshya_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-Pratikshya@Pokhara2026!}
+      POSTGRES_DB: ${DB_NAME:-pratikshya_lucky_spin}
+      TZ: Asia/Kathmandu
+      PGTZ: Asia/Kathmandu
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-pratikshya_admin} -d ${DB_NAME:-pratikshya_lucky_spin}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

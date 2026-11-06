@@ -100,7 +100,7 @@ export async function runMigrations() {
         reward_id UUID NOT NULL REFERENCES rewards(id),
         spin_id UUID REFERENCES spins(id),
         admin_id UUID REFERENCES admins(id),
-        transaction_type VARCHAR(30) NOT NULL CHECK (transaction_type IN ('INITIAL_LOAD', 'SPIN_DEDUCTION', 'ADMIN_ADD', 'ADMIN_DEDUCT')),
+        transaction_type VARCHAR(30) NOT NULL CHECK (transaction_type IN ('INITIAL_LOAD', 'SPIN_DEDUCTION', 'ADMIN_ADD', 'ADMIN_DEDUCT', 'ADMIN_EDIT')),
         quantity_changed INTEGER NOT NULL,
         remaining_after INTEGER NOT NULL CHECK (remaining_after >= 0),
         timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()

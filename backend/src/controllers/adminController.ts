@@ -293,12 +293,13 @@ export async function updateRewardDetails(req: Request, res: Response) {
     // Record inventory transaction if quantity changed
     const diff = newRemaining - reward.remaining_quantity;
     if (diff !== 0) {
+      const txType = diff > 0 ? 'ADMIN_ADD' : 'ADMIN_DEDUCT';
       await client.query(`
         INSERT INTO inventory_transactions (
           reward_id, admin_id, transaction_type, quantity_changed, remaining_after
         )
-        VALUES ($1, $2, 'ADMIN_EDIT', $3, $4);
-      `, [id, adminId, diff, newRemaining]);
+        VALUES ($1, $2, $3, $4, $5);
+      `, [id, adminId, txType, Math.abs(diff), newRemaining]);
     }
 
     // Record audit log

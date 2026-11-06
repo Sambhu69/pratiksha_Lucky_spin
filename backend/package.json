@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Backend API & Intelligent Reward Engine for Pratikshya Kitchen Suppliers",
+  "license": "MIT",
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export interface RewardSegment {
   rewardNumber: number;
@@ -30,38 +30,51 @@ export default function SpinWheel({
   targetRewardNumber,
   onSpinComplete,
 }: SpinWheelProps) {
-  const [currentRotation, setCurrentRotation] = useState(0);
+  // Start at 240deg so Segment #1 (center at 30deg) is pointing straight UP to the top needle initially (30 + 240 = 270deg)
+  const [currentRotation, setCurrentRotation] = useState(240);
+  // Track whether we have already started the animation for this spin session
+  const hasStartedSpinRef = useRef(false);
 
-  // Wheel geometry: 6 segments of 60 deg each
-  // With pointer at TOP (270 deg / -90 deg):
-  // Segment i center angle relative to wheel = (i - 1) * 60 + 30
-  // When wheel rotates by R deg clockwise, an angle theta moves to (theta + R) mod 360.
-  // For segment i center to align with top pointer (270 deg):
-  // ( (i - 1)*60 + 30 + R ) = 270 (mod 360) => R = 270 - ( (i - 1)*60 + 30 ) = 240 - (i - 1)*60
+  // Reset the guard whenever a new spin session begins (isSpinning goes from false → true)
   useEffect(() => {
-    if (isSpinning && targetRewardNumber !== null) {
-      const segmentIndex = targetRewardNumber - 1; // 0 to 5
-      const segmentCenter = segmentIndex * 60 + 30;
-      
-      // Top pointer is at 270 deg
-      const targetAngleAtPointer = (270 - segmentCenter + 360) % 360;
-
-      // Add minimum 6 full rotations (2160 deg) plus natural random jitter within +/- 14 degrees
-      const randomJitter = (Math.random() - 0.5) * 28;
-      const fullSpins = 6 * 360;
-      
-      // Calculate next absolute rotation keeping forward momentum
-      const currentFullRounds = Math.floor(currentRotation / 360);
-      const nextRotation = (currentFullRounds + 6) * 360 + targetAngleAtPointer + randomJitter;
-
-      setCurrentRotation(nextRotation);
-
-      const timer = setTimeout(() => {
-        onSpinComplete();
-      }, 5500);
-
-      return () => clearTimeout(timer);
+    if (!isSpinning) {
+      hasStartedSpinRef.current = false;
     }
+  }, [isSpinning]);
+
+  // Wheel geometry: 6 segments of 60 deg each (standard trigonometry: 0° East, 90° South, 180° West, 270° North)
+  // With pointer at TOP (270 deg):
+  // Segment i center angle relative to SVG = (i - 1) * 60 + 30
+  // When wheel rotates by R deg clockwise, segment center moves to (segmentCenter + R) mod 360.
+  // For segment i center to align with top pointer (270 deg):
+  // segmentCenter + R = 270 (mod 360) => R = (270 - segmentCenter + 360) % 360
+  useEffect(() => {
+    // Guard: only spin once per session, and only when we have a valid target
+    if (!isSpinning || targetRewardNumber === null || hasStartedSpinRef.current) return;
+
+    // Mark that we've started this spin — prevents double-firing if deps update later
+    hasStartedSpinRef.current = true;
+
+    const segmentIndex = targetRewardNumber - 1; // 0 to 5
+    const segmentCenter = segmentIndex * 60 + 30;
+
+    // Top pointer is at 270 deg
+    const targetAngleAtPointer = (270 - segmentCenter + 360) % 360;
+
+    // Natural random jitter within +/- 8 degrees (slice is 60 deg wide, so +/- 8 deg stays safely centered)
+    const randomJitter = (Math.random() - 0.5) * 16;
+
+    // Calculate next absolute rotation keeping forward momentum (at least 6 full rotations)
+    const currentFullRounds = Math.floor(currentRotation / 360);
+    const nextRotation = (currentFullRounds + 6) * 360 + targetAngleAtPointer + randomJitter;
+
+    setCurrentRotation(nextRotation);
+
+    const timer = setTimeout(() => {
+      onSpinComplete();
+    }, 5500);
+
+    return () => clearTimeout(timer);
   }, [isSpinning, targetRewardNumber]);
 
   return (
@@ -101,7 +114,7 @@ export default function SpinWheel({
       >
         <svg
           viewBox="0 0 400 400"
-          className="w-full h-full transform -rotate-90 origin-center"
+          className="w-full h-full"
         >
           {SEGMENTS.map((seg, i) => {
             const startAngle = (i * 60 * Math.PI) / 180;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import SpinWheel from '@/components/SpinWheel';
 import VoucherModal from '@/components/VoucherModal';
@@ -34,6 +34,10 @@ export default function KioskPage() {
 
   // Active Session
   const [session, setSession] = useState<CustomerSession | null>(null);
+
+  // Ref to pass spin result synchronously to SpinWheel — prevents race condition
+  // where React's async state batching causes targetRewardNumber to be null at first render
+  const pendingSpinRewardRef = useRef<number | null>(null);
 
   // Spin Execution
   const [spinResult, setSpinResult] = useState<SpinResult | null>(null);
@@ -99,6 +103,7 @@ export default function KioskPage() {
         throw new Error('Failed to obtain spin outcome from server.');
       }
 
+      pendingSpinRewardRef.current = res.data.rewardNumber;
       setSpinResult(res.data);
       setStep('SPINNING');
     } catch (err: any) {
@@ -132,6 +137,7 @@ export default function KioskPage() {
     setErrorMsg('');
     setSession(null);
     setSpinResult(null);
+    pendingSpinRewardRef.current = null;
     setStep('ENTRY');
   };
 
@@ -243,7 +249,7 @@ export default function KioskPage() {
               <div className="py-1 sm:py-2 flex items-center justify-center">
                 <SpinWheel
                   isSpinning={step === 'SPINNING'}
-                  targetRewardNumber={spinResult?.rewardNumber || null}
+                  targetRewardNumber={pendingSpinRewardRef.current ?? (spinResult?.rewardNumber ?? null)}
                   onSpinComplete={handleSpinComplete}
                 />
               </div>

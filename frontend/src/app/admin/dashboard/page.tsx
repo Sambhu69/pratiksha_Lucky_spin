@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { apiRequest } from '@/lib/api';
 import SpinWheel from '@/components/SpinWheel';
@@ -62,6 +62,10 @@ export default function AdminDashboardPage() {
   const [editRewardName, setEditRewardName] = useState('');
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  // Ref to pass spin result to SpinWheel before React state has committed
+  // This eliminates the race condition where targetRewardNumber is null on first render
+  const pendingSpinRewardRef = useRef<number | null>(null);
 
   // Embedded Quick Spin State for Counter Staff / Owners
   const [showCounterSpin, setShowCounterSpin] = useState(true);
@@ -249,6 +253,10 @@ export default function AdminDashboardPage() {
       });
 
       if (!res.data) throw new Error('Could not fetch spin result');
+      // Store result in ref SYNCHRONOUSLY before any state update.
+      // The SpinWheel reads this ref value, so it always has the correct
+      // server-assigned reward even before React re-renders with new state.
+      pendingSpinRewardRef.current = res.data.rewardNumber;
       setQuickSpinResult(res.data);
       setSpinStep('SPINNING');
     } catch (err: any) {
@@ -278,6 +286,7 @@ export default function AdminDashboardPage() {
     setQuickSpinResult(null);
     setSpinError('');
     setSpinStep('FORM');
+    pendingSpinRewardRef.current = null;
   };
 
   return (
@@ -385,7 +394,7 @@ export default function AdminDashboardPage() {
             <div className="lg:col-span-6 flex flex-col items-center justify-center space-y-4">
               <SpinWheel
                 isSpinning={spinStep === 'SPINNING'}
-                targetRewardNumber={quickSpinResult?.rewardNumber || null}
+                targetRewardNumber={pendingSpinRewardRef.current ?? (quickSpinResult?.rewardNumber ?? null)}
                 onSpinComplete={handleQuickSpinComplete}
               />
 

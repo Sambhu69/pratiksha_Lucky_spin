@@ -234,15 +234,19 @@ export async function claimSpin(req: Request, res: Response) {
   return sendSuccess(res, updatedSpin, 'Reward successfully claimed and verified');
 }
 
-// 5. PATCH /api/admin/rewards/:id/inventory
-const addInventorySchema = z.object({
-  quantityChange: z.number().int().positive('Quantity change must be a positive integer'),
+// 5. PATCH /api/admin/rewards/:id (Full Edit: Name, Remaining Stock, Base Weight, Tier)
+const editRewardSchema = z.object({
+  rewardName: z.string().trim().min(1).optional(),
+  remainingQuantity: z.number().int().min(0, 'Remaining stock cannot be negative').optional(),
+  probabilityWeight: z.number().positive('Probability weight must be positive').optional(),
+  rewardTier: z.enum(['COMMON', 'PREMIUM']).optional(),
+  quantityChange: z.number().int().positive().optional(), // backwards compatibility
 });
 
-export async function adjustRewardInventory(req: Request, res: Response) {
+export async function updateRewardDetails(req: Request, res: Response) {
   const { id } = req.params;
   const adminId = req.admin?.id;
-  const { quantityChange } = addInventorySchema.parse(req.body);
+  const data = editRewardSchema.parse(req.body);
 
   const updatedReward = await withTransaction(async (client) => {
     // Lock reward row
@@ -255,43 +259,67 @@ export async function adjustRewardInventory(req: Request, res: Response) {
     }
 
     const reward = lockRes.rows[0];
-    const newRemaining = reward.remaining_quantity + quantityChange;
-    const newInitial = reward.initial_quantity + quantityChange;
+
+    // Calculate new values
+    let newRemaining = reward.remaining_quantity;
+    let newInitial = reward.initial_quantity;
+
+    if (typeof data.remainingQuantity === 'number') {
+      newRemaining = data.remainingQuantity;
+      // Maintain consistency: initial = distributed + remaining
+      newInitial = Number(reward.distributed_quantity) + newRemaining;
+    } else if (typeof data.quantityChange === 'number') {
+      newRemaining += data.quantityChange;
+      newInitial += data.quantityChange;
+    }
+
+    const newName = data.rewardName || reward.reward_name;
+    const newWeight = typeof data.probabilityWeight === 'number' ? data.probabilityWeight : reward.probability_weight;
+    const newTier = data.rewardTier || reward.reward_tier;
 
     const updateRes = await client.query(`
       UPDATE rewards
       SET 
-        initial_quantity = $1,
+        reward_name = $1,
         remaining_quantity = $2,
+        initial_quantity = $3,
+        probability_weight = $4,
+        reward_tier = $5,
         updated_at = NOW()
-      WHERE id = $3
+      WHERE id = $6
       RETURNING *;
-    `, [newInitial, newRemaining, id]);
+    `, [newName, newRemaining, newInitial, newWeight, newTier, id]);
 
-    // Record inventory transaction
-    await client.query(`
-      INSERT INTO inventory_transactions (
-        reward_id, admin_id, transaction_type, quantity_changed, remaining_after
-      )
-      VALUES ($1, $2, 'ADMIN_ADD', $3, $4);
-    `, [id, adminId, quantityChange, newRemaining]);
+    // Record inventory transaction if quantity changed
+    const diff = newRemaining - reward.remaining_quantity;
+    if (diff !== 0) {
+      await client.query(`
+        INSERT INTO inventory_transactions (
+          reward_id, admin_id, transaction_type, quantity_changed, remaining_after
+        )
+        VALUES ($1, $2, 'ADMIN_EDIT', $3, $4);
+      `, [id, adminId, diff, newRemaining]);
+    }
 
     // Record audit log
     await client.query(`
       INSERT INTO audit_logs (admin_id, action, entity_type, entity_id, previous_value, new_value)
-      VALUES ($1, 'INVENTORY_ADD', 'rewards', $2, $3, $4);
+      VALUES ($1, 'REWARD_EDIT', 'rewards', $2, $3, $4);
     `, [
       adminId,
       id,
-      JSON.stringify({ remaining_quantity: reward.remaining_quantity, initial_quantity: reward.initial_quantity }),
-      JSON.stringify({ remaining_quantity: newRemaining, initial_quantity: newInitial, added: quantityChange }),
+      JSON.stringify(reward),
+      JSON.stringify(updateRes.rows[0]),
     ]);
 
     return updateRes.rows[0];
   });
 
-  return sendSuccess(res, updatedReward, `Successfully added ${quantityChange} units to inventory.`);
+  return sendSuccess(res, updatedReward, 'Reward updated successfully.');
 }
+
+// Kept for backward compatibility
+export const adjustRewardInventory = updateRewardDetails;
 
 // 6. PATCH /api/admin/campaign/status
 const updateStatusSchema = z.object({

@@ -32,4 +32,5 @@ router.get('/admin/probability-table', requireAdminAuth, asyncHandler(getProbabi
 router.get('/admin/spins', requireAdminAuth, asyncHandler(getSpins));
 router.patch('/admin/spins/:id/claim', requireAdminAuth, asyncHandler(claimSpin));
 router.patch('/admin/rewards/:id/inventory', requireAdminAuth, asyncHandler(adjustRewardInventory));
+router.patch('/admin/rewards/:id', requireAdminAuth, asyncHandler(adjustRewardInventory));
 router.patch('/admin/campaign/status', requireAdminAuth, asyncHandler(updateCampaignStatus));

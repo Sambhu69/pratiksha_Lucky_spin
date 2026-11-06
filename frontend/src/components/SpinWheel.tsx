@@ -132,26 +132,26 @@ export default function SpinWheel({
                 >
                   <text
                     x="0"
-                    y="-8"
+                    y="-4"
                     fill="#ffffff"
-                    fontSize="13"
-                    fontWeight="800"
+                    fontSize="15"
+                    fontWeight="900"
                     textAnchor="middle"
                     className="tracking-wider uppercase"
                     style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}
                   >
-                    {`REWARD ${seg.rewardNumber}`}
+                    {`#${seg.rewardNumber}`}
                   </text>
                   <text
                     x="0"
-                    y="10"
+                    y="12"
                     fill={seg.tier === 'PREMIUM' ? '#fde047' : '#93c5fd'}
                     fontSize="10"
-                    fontWeight="700"
+                    fontWeight="800"
                     textAnchor="middle"
-                    className="tracking-wide"
+                    className="tracking-widest uppercase"
                   >
-                    {seg.name.length > 16 ? `${seg.name.slice(0, 14)}...` : seg.name}
+                    🎁 SURPRISE
                   </text>
                 </g>
               </g>

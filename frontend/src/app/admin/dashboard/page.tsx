@@ -55,8 +55,12 @@ export default function AdminDashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [claimLoadingId, setClaimLoadingId] = useState<string | null>(null);
-  const [addQtyRewardId, setAddQtyRewardId] = useState<string | null>(null);
-  const [addQtyValue, setAddQtyValue] = useState('10');
+  const [editingReward, setEditingReward] = useState<ProbabilityReward | null>(null);
+  const [editRemainingQty, setEditRemainingQty] = useState('');
+  const [editProbWeight, setEditProbWeight] = useState('');
+  const [editTier, setEditTier] = useState<'COMMON' | 'PREMIUM'>('COMMON');
+  const [editRewardName, setEditRewardName] = useState('');
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   // Embedded Quick Spin State for Counter Staff / Owners
@@ -125,24 +129,49 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // 2. Add Stock to Reward
-  const handleAddStock = async (rewardId: string) => {
-    const qty = parseInt(addQtyValue, 10);
-    if (isNaN(qty) || qty <= 0) {
-      showToast('Please enter a valid positive number', 'error');
+  // 2. Open Edit Modal for a Reward
+  const openEditModal = (r: ProbabilityReward) => {
+    setEditingReward(r);
+    setEditRewardName(r.rewardName);
+    setEditRemainingQty(String(r.remainingQuantity));
+    setEditProbWeight(String(r.probabilityWeight));
+    setEditTier(r.rewardTier);
+  };
+
+  // 3. Save Reward Edits
+  const handleSaveRewardEdit = async () => {
+    if (!editingReward) return;
+
+    const remainingQty = parseInt(editRemainingQty, 10);
+    const probWeight = parseFloat(editProbWeight);
+
+    if (isNaN(remainingQty) || remainingQty < 0) {
+      showToast('Remaining stock must be 0 or a positive number', 'error');
+      return;
+    }
+    if (isNaN(probWeight) || probWeight <= 0) {
+      showToast('Probability weight must be greater than 0', 'error');
       return;
     }
 
+    setIsSavingEdit(true);
     try {
-      await apiRequest(`/admin/rewards/${rewardId}/inventory`, {
+      await apiRequest(`/admin/rewards/${editingReward.id}`, {
         method: 'PATCH',
-        body: JSON.stringify({ quantityChange: qty }),
+        body: JSON.stringify({
+          rewardName: editRewardName.trim() || editingReward.rewardName,
+          remainingQuantity: remainingQty,
+          probabilityWeight: probWeight,
+          rewardTier: editTier,
+        }),
       });
-      showToast(`Added ${qty} units to inventory!`);
-      setAddQtyRewardId(null);
+      showToast(`Reward #${editingReward.rewardNumber} updated successfully!`);
+      setEditingReward(null);
       loadData();
     } catch (err: any) {
-      showToast(err.message || 'Failed to add stock', 'error');
+      showToast(err.message || 'Failed to update reward', 'error');
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
@@ -569,7 +598,7 @@ export default function AdminDashboardPage() {
                 <th className="py-3 px-4">Stock (Left / Initial)</th>
                 <th className="py-3 px-4">Base Weight</th>
                 <th className="py-3 px-4">Current Win %</th>
-                <th className="py-3 px-4 text-right">Quick Restock</th>
+                <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
@@ -623,38 +652,13 @@ export default function AdminDashboardPage() {
                     </div>
                   </td>
                   <td className="py-3.5 px-4 text-right">
-                    {addQtyRewardId === r.id ? (
-                      <div className="inline-flex items-center gap-1.5">
-                        <input
-                          type="number"
-                          value={addQtyValue}
-                          onChange={(e) => setAddQtyValue(e.target.value)}
-                          className="w-16 px-2 py-1 text-xs bg-slate-950 border border-slate-700 rounded text-white"
-                        />
-                        <button
-                          onClick={() => handleAddStock(r.id)}
-                          className="px-2 py-1 bg-emerald-600 text-[11px] font-bold rounded text-white"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={() => setAddQtyRewardId(null)}
-                          className="px-1.5 py-1 text-slate-400 text-xs"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setAddQtyRewardId(r.id);
-                          setAddQtyValue('10');
-                        }}
-                        className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition"
-                      >
-                        + Add Stock
-                      </button>
-                    )}
+                    <button
+                      onClick={() => openEditModal(r)}
+                      className="px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold transition flex items-center gap-1.5 ml-auto cursor-pointer"
+                    >
+                      <span>⚙️</span>
+                      <span>Edit</span>
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -776,6 +780,133 @@ export default function AdminDashboardPage() {
           </table>
         </div>
       </div>
+
+      {/* FULL REWARD EDIT MODAL */}
+      {editingReward && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-md bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div>
+                <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <span>⚙️ Edit Reward #{editingReward.rewardNumber}</span>
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                      editTier === 'PREMIUM'
+                        ? 'bg-amber-500/20 text-amber-300'
+                        : 'bg-blue-500/20 text-blue-300'
+                    }`}
+                  >
+                    {editTier}
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Update stock, probability weight, tier, or name.
+                </p>
+              </div>
+              <button
+                onClick={() => setEditingReward(null)}
+                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-sm transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                  Gift Label / Secret Item Name
+                </label>
+                <input
+                  type="text"
+                  value={editRewardName}
+                  onChange={(e) => setEditRewardName(e.target.value)}
+                  placeholder="e.g. Surprise Gift Box #1"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                    Remaining Stock
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editRemainingQty}
+                    onChange={(e) => setEditRemainingQty(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm font-mono focus:outline-none focus:border-amber-400"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">0 = Exhausted</p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                    Base Weight
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    value={editProbWeight}
+                    onChange={(e) => setEditProbWeight(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm font-mono focus:outline-none focus:border-amber-400"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">Relative win chance</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                  Tier Category
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditTier('COMMON')}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold uppercase border transition ${
+                      editTier === 'COMMON'
+                        ? 'bg-blue-600 text-white border-blue-400 shadow-md'
+                        : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    Common Tier
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditTier('PREMIUM')}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold uppercase border transition ${
+                      editTier === 'PREMIUM'
+                        ? 'bg-amber-500 text-slate-950 border-amber-300 shadow-md font-black'
+                        : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    Premium Tier
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditingReward(null)}
+                className="flex-1 py-3 px-4 rounded-xl text-xs font-bold text-slate-400 bg-slate-800 hover:bg-slate-700 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isSavingEdit}
+                onClick={handleSaveRewardEdit}
+                className="flex-1 py-3 px-4 rounded-xl text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 transition shadow-lg shadow-amber-500/20 disabled:opacity-50"
+              >
+                {isSavingEdit ? 'Saving...' : 'Save Changes ✓'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

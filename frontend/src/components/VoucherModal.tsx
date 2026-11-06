@@ -43,19 +43,25 @@ export default function VoucherModal({
         <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-slate-800/80 border border-slate-700/60 shadow-inner space-y-2 sm:space-y-3">
           <div className="flex items-center justify-center gap-2">
             <span
-              className={`px-2 sm:px-2.5 py-0.5 rounded text-[10px] sm:text-xs font-black tracking-wider uppercase ${
+              className={`px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase ${
                 rewardTier === 'PREMIUM'
                   ? 'bg-amber-500 text-slate-950 shadow-md'
                   : 'bg-blue-600/80 text-white'
               }`}
             >
-              {rewardTier} REWARD #{rewardNumber}
+              {rewardTier} GIFT #{rewardNumber}
             </span>
           </div>
 
-          <h3 className="text-lg sm:text-2xl font-black text-amber-300">
-            {rewardName}
-          </h3>
+          <div className="py-2">
+            <span className="text-4xl">🎁</span>
+            <h3 className="text-xl sm:text-2xl font-black text-amber-300 mt-1">
+              Surprise Gift Box #{rewardNumber}
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Collect wrapped parcel at billing counter
+            </p>
+          </div>
         </div>
 
         {/* Claim Voucher Box */}

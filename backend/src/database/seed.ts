@@ -42,8 +42,8 @@ export async function runSeed() {
     const year = nowNepal.getFullYear();
     const month = String(nowNepal.getMonth() + 1).padStart(2, '0');
     const day = String(nowNepal.getDate()).padStart(2, '0');
-    const startDatetime = `${year}-${month}-${day} 06:00:00+05:45`;
-    const endDatetime = `${year}-${month}-${day} 22:00:00+05:45`;
+    const startDatetime = `${year}-${month}-${day} 00:00:00+05:45`;
+    const endDatetime = `${year}-${month}-${day} 23:59:59+05:45`;
 
     const campaignRes = await client.query(`
       INSERT INTO campaigns (campaign_name, description, start_datetime, end_datetime, campaign_status, maximum_spins_per_customer)

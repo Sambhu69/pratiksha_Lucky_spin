@@ -31,29 +31,27 @@
   - Built celebration voucher modal (`frontend/src/components/VoucherModal.tsx`) with canvas-confetti particle burst, unique verification code display, and "Done / Next Customer" reset.
   - Verified Next.js 14 production build (`npm run build`) compiles with zero type errors.
 - [x] **Phase 7: Administrator & Counter Staff Dashboard**
-  - Implemented protected admin API endpoints in `backend/src/controllers/adminController.ts`:
-    - `GET /api/admin/metrics`: Aggregated totals for registered customers, executed spins, gifts remaining, tier distribution, and unclaimed gifts.
-    - `GET /api/admin/probability-table`: Live dynamic calculation of availability factors, effective weights, and win percentages for all 6 wheel segments.
-    - `GET /api/admin/spins`: Paginated and searchable spin log by customer phone, invoice number, or UTR verification code.
-    - `PATCH /api/admin/spins/:id/claim`: Atomic verification and handover logging for counter staff with audit trail.
-    - `PATCH /api/admin/rewards/:id/inventory`: Real-time stock injection with `ADMIN_ADD` transaction recording.
-    - `PATCH /api/admin/campaign/status`: Dynamic pause/resume/close controls for store managers.
-  - Built modern responsive Admin Dashboard in Next.js 14:
-    - `/admin/login`: Staff and Admin sign-in interface with JWT cookie authentication.
-    - `/admin/layout`: Shop header with live Nepal Standard Time clock (`Asia/Kathmandu`), role badge, and session controls.
-    - `/admin/dashboard`: Real-time KPI summary cards, campaign status control bar, live probability table with quick restock buttons, and physical voucher claim desk with search filters.
-    - Added direct link from Kiosk footer to Admin Console.
+  - Implemented protected admin API endpoints in `backend/src/controllers/adminController.ts`.
+  - Built modern responsive Admin Dashboard in Next.js 14 (`/admin/login`, `/admin/dashboard`).
+- [x] **Phase 8: Concurrency Stress Testing & QA Suite**
+  - Built `backend/tests/concurrency.test.ts` verifying race conditions under 20 simultaneous requests (`Promise.all()`):
+    - When Reward 3 has 1 remaining unit and 20 users spin concurrently, exactly 1 wins Reward 3, 19 receive fallback Reward 1, and zero-stock inventory constraints are preserved without lock errors.
+  - Built `backend/tests/businessLogic.test.ts` verifying critical fraud barriers:
+    - 1. Duplicate spin prevention (rejects second spin with 400).
+    - 2. Invoice reuse attack (rejects registration of already-claimed invoice with 409).
+    - 3. Idempotency guard (replaying identical idempotency key returns cached spin without extra deduction).
+    - 4. Campaign status lockout (rejects spins with 403 when campaign is PAUSED).
+    - 5. Physical claim double-handover guard (rejects second voucher claim attempt with 400).
+  - Configured scripts: `npm run test:concurrency` and `npm run test:all`.
+  - Full test suite passing 100% (9/9 tests across 3 suites).
 
 ## Current Tasks
-- [ ] **Phase 8: Security & Business Logic Hardening**
-  - Rate limiting on spin execution and phone validation endpoints.
-  - CSRF protections and input sanitization audits.
-  - Zero-stock race condition load testing under simulated concurrent requests.
+- [ ] **Phase 9: Production Deployment & Docker Containerization**
+  - Finalize multi-stage Dockerfiles for backend and frontend.
+  - Offline local shop deployment package.
 
 ## Pending Tasks
-- [ ] Phase 9: Testing & Quality Assurance
-- [ ] Phase 10: Deployment & Pre-Launch Preparation
-- [ ] Phase 11: Final Reporting & CSV/Print Export
+- [ ] Phase 10: Final Reporting & CSV/Print Export
 
 ## Technical Decisions Log
 1. **Kiosk Mode First:** Selected dedicated shop Kiosk/Tablet mode to prevent remote fraud and work reliably on local Wi-Fi.

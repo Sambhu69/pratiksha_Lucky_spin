@@ -11,7 +11,9 @@
     "db:migrate": "tsx src/database/migrate.ts",
     "db:seed": "tsx src/database/seed.ts",
     "sim:10k": "tsx src/simulation/run-10k-simulation.ts",
-    "test": "vitest run"
+    "test": "vitest run --fileParallelism=false",
+    "test:concurrency": "vitest run tests/concurrency.test.ts",
+    "test:all": "vitest run --fileParallelism=false"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

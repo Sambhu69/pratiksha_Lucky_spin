@@ -72,6 +72,15 @@ export async function executeSpin(req: Request, res: Response) {
 
     const customer = customerLock.rows[0];
 
+    // Check campaign status
+    const campaignCheck = await client.query(`
+      SELECT campaign_status FROM campaigns WHERE id = $1;
+    `, [customer.campaign_id]);
+
+    if (campaignCheck.rows.length === 0 || campaignCheck.rows[0].campaign_status !== 'ACTIVE') {
+      throw AppError.forbidden(`Campaign is currently ${campaignCheck.rows[0]?.campaign_status || 'INACTIVE'}.`);
+    }
+
     if (customer.eligibility_status === 'BLOCKED') {
       throw AppError.forbidden('Customer is blocked from spinning.');
     }

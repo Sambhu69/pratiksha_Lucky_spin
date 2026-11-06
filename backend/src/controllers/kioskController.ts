@@ -27,19 +27,21 @@ export async function validateCustomer(req: Request, res: Response) {
 
   // 1. Verify Active Campaign within Nepal Standard Time
   const campaignRes = await pool.query(`
-    SELECT id, campaign_name, start_datetime, end_datetime, maximum_spins_per_customer
+    SELECT id, campaign_name, start_datetime, end_datetime, campaign_status, maximum_spins_per_customer
     FROM campaigns
-    WHERE campaign_status = 'ACTIVE'
-      AND NOW() BETWEEN start_datetime AND end_datetime
     ORDER BY created_at DESC
     LIMIT 1;
   `);
 
   if (campaignRes.rows.length === 0) {
-    throw AppError.badRequest('No active campaign is currently open for Lucky Spin at this time.');
+    throw AppError.badRequest('No campaign configured.');
   }
 
   const campaign = campaignRes.rows[0];
+  if (campaign.campaign_status !== 'ACTIVE') {
+    throw AppError.forbidden(`Campaign is currently ${campaign.campaign_status}.`);
+  }
+
   const campaignId = campaign.id;
 
   // 2. Check if this customer (by phone_number) already registered in this campaign
@@ -94,10 +96,7 @@ export async function validateCustomer(req: Request, res: Response) {
   `, [campaignId, invoiceReference]);
 
   if (invoiceRes.rows.length > 0) {
-    return sendSuccess(res, {
-      eligible: false,
-      reason: 'This invoice number has already been claimed by another customer.',
-    });
+    throw AppError.conflict('Invoice reference has already been used.');
   }
 
   // 4. Register new eligible customer

@@ -200,3 +200,4 @@ export async function executeSpin(req: Request, res: Response) {
 
   return sendSuccess(res, result, 'Spin executed successfully');
 }
+

@@ -300,8 +300,14 @@ export default function KioskPage() {
       </main>
 
       {/* Footer */}
-      <footer className="py-4 text-center text-xs text-slate-500 border-t border-slate-900">
-        Pratikshya Kitchen Suppliers © 2026 • Pokhara Retail Counter Station • All Rights Reserved
+      <footer className="py-4 text-center text-xs text-slate-500 border-t border-slate-900 flex items-center justify-between px-6 max-w-4xl mx-auto w-full">
+        <span>Pratikshya Kitchen Suppliers © 2026 • Pokhara</span>
+        <a
+          href="/admin/login"
+          className="text-slate-500 hover:text-amber-400 text-xs transition"
+        >
+          Staff & Admin Console →
+        </a>
       </footer>
     </div>
   );

@@ -93,3 +93,4 @@ export async function getMe(req: Request, res: Response) {
 
   return sendSuccess(res, { admin: result.rows[0] });
 }
+

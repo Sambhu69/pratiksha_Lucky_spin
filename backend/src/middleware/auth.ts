@@ -41,3 +41,4 @@ export function requireAdminAuth(req: Request, _res: Response, next: NextFunctio
     return next(AppError.unauthorized('Invalid or expired authentication session.'));
   }
 }
+

@@ -30,16 +30,27 @@
   - Created high-performance 6-segment SVG wheel component (`frontend/src/components/SpinWheel.tsx`) with fixed needle pointer, realistic deceleration curve (`cubic-bezier(0.15, 0.9, 0.2, 1.0)`), 6+ full rotations, and natural jitter within segment boundaries.
   - Built celebration voucher modal (`frontend/src/components/VoucherModal.tsx`) with canvas-confetti particle burst, unique verification code display, and "Done / Next Customer" reset.
   - Verified Next.js 14 production build (`npm run build`) compiles with zero type errors.
+- [x] **Phase 7: Administrator & Counter Staff Dashboard**
+  - Implemented protected admin API endpoints in `backend/src/controllers/adminController.ts`:
+    - `GET /api/admin/metrics`: Aggregated totals for registered customers, executed spins, gifts remaining, tier distribution, and unclaimed gifts.
+    - `GET /api/admin/probability-table`: Live dynamic calculation of availability factors, effective weights, and win percentages for all 6 wheel segments.
+    - `GET /api/admin/spins`: Paginated and searchable spin log by customer phone, invoice number, or UTR verification code.
+    - `PATCH /api/admin/spins/:id/claim`: Atomic verification and handover logging for counter staff with audit trail.
+    - `PATCH /api/admin/rewards/:id/inventory`: Real-time stock injection with `ADMIN_ADD` transaction recording.
+    - `PATCH /api/admin/campaign/status`: Dynamic pause/resume/close controls for store managers.
+  - Built modern responsive Admin Dashboard in Next.js 14:
+    - `/admin/login`: Staff and Admin sign-in interface with JWT cookie authentication.
+    - `/admin/layout`: Shop header with live Nepal Standard Time clock (`Asia/Kathmandu`), role badge, and session controls.
+    - `/admin/dashboard`: Real-time KPI summary cards, campaign status control bar, live probability table with quick restock buttons, and physical voucher claim desk with search filters.
+    - Added direct link from Kiosk footer to Admin Console.
 
 ## Current Tasks
-- [ ] **Phase 7: Administrator Dashboard (Inventory Management & Claim Verification)**
-  - Admin login page (`/admin/login`) with session management.
-  - Real-time stock monitor & inventory adjustment table.
-  - Counter voucher claim verification by UTR code (`PKS-MMDD-XXXX`).
-  - Live campaign statistics and spin history log.
+- [ ] **Phase 8: Security & Business Logic Hardening**
+  - Rate limiting on spin execution and phone validation endpoints.
+  - CSRF protections and input sanitization audits.
+  - Zero-stock race condition load testing under simulated concurrent requests.
 
 ## Pending Tasks
-- [ ] Phase 8: Security & Business Logic Hardening
 - [ ] Phase 9: Testing & Quality Assurance
 - [ ] Phase 10: Deployment & Pre-Launch Preparation
 - [ ] Phase 11: Final Reporting & CSV/Print Export

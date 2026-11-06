@@ -75,3 +75,4 @@ describe('Intelligent Reward Engine', () => {
     expect(() => selectWinningReward(exhausted)).toThrow(OutOfStockError);
   });
 });
+

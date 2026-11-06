@@ -126,3 +126,4 @@ export async function validateCustomer(req: Request, res: Response) {
     campaignId,
   });
 }
+

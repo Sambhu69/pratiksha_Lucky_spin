@@ -8,6 +8,7 @@ import { sendSuccess } from './utils/apiResponse.js';
 import { AppError } from './utils/appError.js';
 import { asyncHandler } from './utils/asyncHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
+import { router as apiRouter } from './routes/api.js';
 
 export const app = express();
 
@@ -29,7 +30,10 @@ app.use(
 app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
 
-// 5. Health & Diagnostics Endpoint
+// 5. API Routes
+app.use('/api', apiRouter);
+
+// 6. Health & Diagnostics Endpoint
 app.get(
   '/api/health',
   asyncHandler(async (_req: Request, res: Response) => {

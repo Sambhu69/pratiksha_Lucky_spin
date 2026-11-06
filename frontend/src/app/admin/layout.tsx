@@ -101,9 +101,13 @@ export default function AdminLayout({
 
             <a
               href="/"
-              className="text-xs text-amber-400 hover:underline font-semibold hidden xs:inline"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-white font-bold text-xs shadow-md shadow-amber-500/20 transition active:scale-95"
             >
-              Kiosk →
+              <span>🎯</span>
+              <span>लक्की स्पिन खोल्नुहोस् (Open Kiosk)</span>
+              <span>↗</span>
             </a>
           </div>
         </div>

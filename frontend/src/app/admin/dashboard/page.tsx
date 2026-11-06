@@ -1,7 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import confetti from 'canvas-confetti';
 import { apiRequest } from '@/lib/api';
+import SpinWheel from '@/components/SpinWheel';
+import VoucherModal from '@/components/VoucherModal';
 
 interface Metrics {
   campaignId: string;
@@ -55,6 +58,26 @@ export default function AdminDashboardPage() {
   const [addQtyRewardId, setAddQtyRewardId] = useState<string | null>(null);
   const [addQtyValue, setAddQtyValue] = useState('10');
   const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  // Embedded Quick Spin State for Counter Staff / Owners
+  const [showCounterSpin, setShowCounterSpin] = useState(true);
+  const [spinStep, setSpinStep] = useState<'FORM' | 'READY' | 'SPINNING' | 'WON'>('FORM');
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerInvoice, setCustomerInvoice] = useState('');
+  const [spinError, setSpinError] = useState('');
+  const [spinLoading, setSpinLoading] = useState(false);
+  const [verifiedCustomer, setVerifiedCustomer] = useState<{
+    customerId: string;
+    customerName: string;
+    invoice: string;
+  } | null>(null);
+  const [quickSpinResult, setQuickSpinResult] = useState<{
+    rewardNumber: number;
+    rewardName: string;
+    rewardTier: 'COMMON' | 'PREMIUM';
+    transactionReference: string;
+  } | null>(null);
 
   // Auto-refresh interval
   const loadData = async () => {
@@ -138,6 +161,98 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // 4. Quick Spin Verification (Counter / Admin)
+  const handleQuickVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSpinError('');
+    setSpinLoading(true);
+
+    try {
+      const res = await apiRequest<{
+        eligible: boolean;
+        reason?: string;
+        customerId: string;
+        customerName: string;
+      }>('/kiosk/validate', {
+        method: 'POST',
+        body: JSON.stringify({
+          fullName: customerName,
+          phoneNumber: customerPhone,
+          invoiceReference: customerInvoice,
+        }),
+      });
+
+      if (!res.data || !res.data.eligible) {
+        setSpinError(res.data?.reason || 'ग्राहक योग्य छैन (Not eligible).');
+        return;
+      }
+
+      setVerifiedCustomer({
+        customerId: res.data.customerId,
+        customerName: res.data.customerName || customerName,
+        invoice: customerInvoice.toUpperCase(),
+      });
+      setSpinStep('READY');
+    } catch (err: any) {
+      setSpinError(err.message || 'जाँच असफल भयो (Verification failed).');
+    } finally {
+      setSpinLoading(false);
+    }
+  };
+
+  // 5. Trigger Quick Spin Now
+  const handleTriggerQuickSpin = async () => {
+    if (!verifiedCustomer || spinStep === 'SPINNING') return;
+    setSpinError('');
+    setSpinLoading(true);
+
+    try {
+      const idempotencyKey = `counter-${verifiedCustomer.customerId}-${Date.now()}`;
+      const res = await apiRequest<{
+        rewardNumber: number;
+        rewardName: string;
+        rewardTier: 'COMMON' | 'PREMIUM';
+        transactionReference: string;
+      }>('/spins/execute', {
+        method: 'POST',
+        body: JSON.stringify({
+          customerId: verifiedCustomer.customerId,
+          idempotencyKey,
+        }),
+      });
+
+      if (!res.data) throw new Error('उपहार पाउन सकिएन');
+      setQuickSpinResult(res.data);
+      setSpinStep('SPINNING');
+    } catch (err: any) {
+      setSpinError(err.message || 'स्पिन असफल भयो');
+    } finally {
+      setSpinLoading(false);
+    }
+  };
+
+  const handleQuickSpinComplete = () => {
+    try {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+    } catch (e) {}
+    setSpinStep('WON');
+    loadData(); // refresh counts and spin list immediately
+  };
+
+  const resetQuickSpin = () => {
+    setCustomerName('');
+    setCustomerPhone('');
+    setCustomerInvoice('');
+    setVerifiedCustomer(null);
+    setQuickSpinResult(null);
+    setSpinError('');
+    setSpinStep('FORM');
+  };
+
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Toast Alert */}
@@ -201,6 +316,205 @@ export default function AdminDashboardPage() {
             </button>
           )}
         </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 🎡 PROMINENT EMBEDDED LUCKY SPIN WHEEL DESK (FOR OWNERS & STAFF)         */}
+      {/* ========================================================================= */}
+      <div className="bg-gradient-to-b from-slate-900 via-slate-850 to-slate-900 border-2 border-amber-500/70 rounded-3xl p-5 sm:p-8 shadow-[0_0_40px_rgba(245,158,11,0.25)] space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
+          <div className="flex items-center gap-3">
+            <span className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-xl sm:text-2xl shadow-lg shadow-amber-500/30">
+              🎡
+            </span>
+            <div>
+              <div className="inline-flex items-center gap-2">
+                <h3 className="text-lg sm:text-2xl font-black text-white">
+                  लक्की स्पिन काउन्टर (Counter Lucky Spin Wheel)
+                </h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  काउन्टर डेस्क
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-300">
+                ग्राहकको बिल र फोन नम्बर हानेर यहिँबाट तुरुन्तै स्पिन घुमाउनुहोस्। (Spin right here from this counter!)
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowCounterSpin(!showCounterSpin)}
+              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 transition"
+            >
+              {showCounterSpin ? 'लुकाउनुहोस् (Hide Wheel) ▲' : 'ह्वील देखाउनुहोस् (Show Wheel) ▼'}
+            </button>
+          </div>
+        </div>
+
+        {showCounterSpin && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-2">
+            {/* LEFT / CENTER: THE ANIMATED WHEEL */}
+            <div className="lg:col-span-6 flex flex-col items-center justify-center space-y-4">
+              <SpinWheel
+                isSpinning={spinStep === 'SPINNING'}
+                targetRewardNumber={quickSpinResult?.rewardNumber || null}
+                onSpinComplete={handleQuickSpinComplete}
+              />
+
+              {spinStep === 'SPINNING' && (
+                <div className="text-center font-bold text-amber-400 text-sm animate-pulse">
+                  ह्वील घुम्दैछ, कृपया प्रतिक्षा गर्नुहोस्... (Wheel is spinning...)
+                </div>
+              )}
+
+              {spinStep === 'READY' && (
+                <button
+                  onClick={handleTriggerQuickSpin}
+                  disabled={spinLoading}
+                  className="w-full sm:w-auto px-10 py-4 rounded-2xl font-black text-lg sm:text-xl uppercase tracking-wider text-white bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(245,158,11,0.5)] animate-bounce transition"
+                >
+                  🎯 स्पिन घुमाउनुहोस् (SPIN NOW!)
+                </button>
+              )}
+            </div>
+
+            {/* RIGHT: CUSTOMER INPUT & RESULT PANEL */}
+            <div className="lg:col-span-6 bg-slate-950/70 border border-slate-800 rounded-2xl p-5 sm:p-7 shadow-inner space-y-4">
+              {spinError && (
+                <div className="p-3.5 rounded-xl bg-red-950/80 border border-red-500/60 text-red-200 text-xs sm:text-sm font-semibold flex items-center gap-2">
+                  <span>⚠️</span>
+                  <span>{spinError}</span>
+                </div>
+              )}
+
+              {spinStep === 'FORM' && (
+                <form onSubmit={handleQuickVerify} className="space-y-4">
+                  <div className="border-b border-slate-800 pb-2">
+                    <span className="text-xs font-black uppercase tracking-wider text-amber-400">
+                      चरण १: ग्राहक विवरण (Step 1: Customer Info)
+                    </span>
+                    <p className="text-xs text-slate-400">
+                      स्पिन गर्नको लागि ग्राहकको बिल र मोबाइल नम्बर भर्नुहोस्।
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                      ग्राहकको नाम (Customer Full Name)
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      placeholder="e.g. राम बहादुर थापा"
+                      className="w-full px-3.5 py-2.5 text-sm bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                      नेपाल मोबाइल नम्बर (Nepal Mobile Number)
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      maxLength={10}
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      placeholder="e.g. 9846012345 (10 अङ्क)"
+                      className="w-full px-3.5 py-2.5 text-sm bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                      बिल / इनभ्वाइस नम्बर (Shop Bill Number)
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={customerInvoice}
+                      onChange={(e) => setCustomerInvoice(e.target.value)}
+                      placeholder="e.g. INV-1049"
+                      className="w-full px-3.5 py-2.5 text-sm bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 uppercase focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={spinLoading}
+                    className="w-full py-3.5 px-4 rounded-xl font-bold text-sm sm:text-base text-slate-950 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 active:scale-[0.99] transition shadow-lg shadow-amber-500/20 disabled:opacity-50"
+                  >
+                    {spinLoading ? 'जाँच हुँदैछ (Checking)...' : 'बिल प्रमाणित गर्नुहोस् (Verify & Unlock Spin) →'}
+                  </button>
+                </form>
+              )}
+
+              {(spinStep === 'READY' || spinStep === 'SPINNING') && verifiedCustomer && (
+                <div className="space-y-5 text-center sm:text-left">
+                  <div className="p-4 rounded-xl bg-slate-900 border border-emerald-500/40 space-y-2">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-400">
+                      ✓ ग्राहक प्रमाणित भयो (Verified)
+                    </div>
+                    <h4 className="text-lg font-black text-white">
+                      {verifiedCustomer.customerName}
+                    </h4>
+                    <p className="text-xs text-slate-400">
+                      बिल नम्बर: <strong className="text-amber-300">{verifiedCustomer.invoice}</strong>
+                    </p>
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-slate-300">
+                    ग्राहक तयार हुनुहुन्छ! बायाँ पट्टिको <strong>"🎯 स्पिन घुमाउनुहोस्"</strong> बटन थिच्नुहोस्।
+                  </p>
+
+                  <button
+                    onClick={resetQuickSpin}
+                    disabled={spinStep === 'SPINNING'}
+                    className="text-xs text-slate-400 hover:text-slate-200 underline"
+                  >
+                    ← अर्को ग्राहक / रद्द गर्नुहोस् (Cancel / Reset)
+                  </button>
+                </div>
+              )}
+
+              {spinStep === 'WON' && quickSpinResult && verifiedCustomer && (
+                <div className="space-y-4 text-center">
+                  <div className="p-2 inline-block rounded-full bg-amber-500/20 text-amber-400 text-xs font-black uppercase tracking-wider">
+                    🎉 बधाई छ! उपहार जित्नुभयो!
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-slate-900 border-2 border-amber-500/50 space-y-2">
+                    <span
+                      className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-black uppercase ${
+                        quickSpinResult.rewardTier === 'PREMIUM'
+                          ? 'bg-amber-500 text-slate-950 font-black'
+                          : 'bg-blue-600 text-white'
+                      }`}
+                    >
+                      {quickSpinResult.rewardTier} उपहार #{quickSpinResult.rewardNumber}
+                    </span>
+                    <h3 className="text-xl sm:text-2xl font-black text-amber-300">
+                      {quickSpinResult.rewardName}
+                    </h3>
+                    <div className="text-xs text-slate-400 pt-1">
+                      कोड: <strong className="text-white font-mono text-base tracking-widest">{quickSpinResult.transactionReference}</strong>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={resetQuickSpin}
+                    className="w-full py-3.5 px-6 rounded-xl font-bold text-slate-950 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 transition shadow-lg shadow-amber-500/20"
+                  >
+                    अर्को ग्राहकको लागि नयाँ स्पिन (Next Spin) 🔄
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* TOP KPI CARDS */}

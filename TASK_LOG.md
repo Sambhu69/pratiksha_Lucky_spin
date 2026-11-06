@@ -25,16 +25,20 @@
   - Implemented Kiosk customer verification (`POST /api/kiosk/validate`) strictly validating Nepal 10-digit mobile numbers (`98/97XXXXXXXX`), shop invoice references, and single-invoice enforcement.
   - Built atomic spin execution endpoint (`POST /api/spins/execute`) with pessimistic concurrency lock (`SELECT ... FOR UPDATE` on customer and rewards), idempotency key protection, UTR generation (`PKS-MMDD-XXXX`), and inventory transaction ledger logging.
   - Verified with comprehensive Vitest suite and full integration test (`src/test/integrationTest.ts`).
+- [x] **Phase 6: Customer Interface — Lucky Spin Experience (Kiosk Wheel)**
+  - Built complete interactive Kiosk single-page state machine in Next.js 14 App Router (`frontend/src/app/page.tsx`) with 3 distinct phases (`ENTRY`, `READY_TO_SPIN` / `SPINNING`, `REWARD_MODAL`).
+  - Created high-performance 6-segment SVG wheel component (`frontend/src/components/SpinWheel.tsx`) with fixed needle pointer, realistic deceleration curve (`cubic-bezier(0.15, 0.9, 0.2, 1.0)`), 6+ full rotations, and natural jitter within segment boundaries.
+  - Built celebration voucher modal (`frontend/src/components/VoucherModal.tsx`) with canvas-confetti particle burst, unique verification code display, and "Done / Next Customer" reset.
+  - Verified Next.js 14 production build (`npm run build`) compiles with zero type errors.
 
 ## Current Tasks
-- [ ] **Phase 6: Customer Interface — Lucky Spin Experience (Kiosk Wheel)**
-  - Build interactive 6-segment SVG/Canvas Wheel in Next.js 14 App Router.
-  - Mobile & Invoice verification modal.
-  - Audio and confetti celebration sequence.
-  - Voucher/Print summary dialog.
+- [ ] **Phase 7: Administrator Dashboard (Inventory Management & Claim Verification)**
+  - Admin login page (`/admin/login`) with session management.
+  - Real-time stock monitor & inventory adjustment table.
+  - Counter voucher claim verification by UTR code (`PKS-MMDD-XXXX`).
+  - Live campaign statistics and spin history log.
 
 ## Pending Tasks
-- [ ] Phase 7: Administrator Dashboard (Inventory Management & Claim Verification)
 - [ ] Phase 8: Security & Business Logic Hardening
 - [ ] Phase 9: Testing & Quality Assurance
 - [ ] Phase 10: Deployment & Pre-Launch Preparation

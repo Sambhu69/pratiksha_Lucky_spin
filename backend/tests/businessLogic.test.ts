@@ -11,6 +11,7 @@ describe('Business Logic & Fraud Prevention Integration Tests', () => {
   let campaignId: string;
   let adminToken: string;
   let adminId: string;
+  let savedOriginalRewards: any[] = [];
 
   beforeAll(async () => {
     server = http.createServer(app);
@@ -22,6 +23,14 @@ describe('Business Logic & Fraud Prevention Integration Tests', () => {
       SELECT id FROM campaigns WHERE campaign_status = 'ACTIVE' ORDER BY created_at DESC LIMIT 1;
     `);
     campaignId = campRes.rows[0].id;
+
+    // Snapshot original rewards to restore after test completes
+    const origRes = await pool.query(`
+      SELECT id, remaining_quantity, distributed_quantity, probability_weight
+      FROM rewards
+      WHERE campaign_id = $1;
+    `, [campaignId]);
+    savedOriginalRewards = origRes.rows;
 
     // Clean up test data from any previous runs
     await pool.query(`
@@ -67,6 +76,15 @@ describe('Business Logic & Fraud Prevention Integration Tests', () => {
         );
       `);
       await pool.query("DELETE FROM customers WHERE campaign_id = $1 AND phone_number LIKE '98999999%';", [campaignId]);
+
+      // Fully restore original rewards state
+      for (const r of savedOriginalRewards) {
+        await pool.query(`
+          UPDATE rewards 
+          SET remaining_quantity = $1, distributed_quantity = $2, probability_weight = $3
+          WHERE id = $4;
+        `, [r.remaining_quantity, r.distributed_quantity, r.probability_weight, r.id]);
+      }
     }
     server.close();
   });

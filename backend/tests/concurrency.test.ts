@@ -7,6 +7,7 @@ describe('Concurrency Stress Test Suite — Retail Race-Condition Verification',
   let server: http.Server;
   let baseUrl: string;
   let campaignId: string;
+  let savedOriginalRewards: any[] = [];
   const customerIds: string[] = [];
 
   beforeAll(async () => {
@@ -21,6 +22,14 @@ describe('Concurrency Stress Test Suite — Retail Race-Condition Verification',
       SELECT id FROM campaigns WHERE campaign_status = 'ACTIVE' ORDER BY created_at DESC LIMIT 1;
     `);
     campaignId = campRes.rows[0].id;
+
+    // Snapshot original rewards to restore after test completes
+    const origRes = await pool.query(`
+      SELECT id, remaining_quantity, distributed_quantity, probability_weight
+      FROM rewards
+      WHERE campaign_id = $1;
+    `, [campaignId]);
+    savedOriginalRewards = origRes.rows;
 
     // 2. Setup inventory:
     // Reward 3: exactly 1 remaining, probability_weight = 1000 to ensure priority selection
@@ -98,14 +107,14 @@ describe('Concurrency Stress Test Suite — Retail Race-Condition Verification',
         DELETE FROM customers WHERE campaign_id = $1 AND phone_number LIKE '98000000%';
       `, [campaignId]);
 
-      // Restore baseline weights
-      await pool.query(`
-        UPDATE rewards SET probability_weight = CASE 
-          WHEN reward_number = 3 THEN 2.5 
-          WHEN reward_number = 1 THEN 30.0 
-          ELSE probability_weight 
-        END WHERE campaign_id = $1;
-      `, [campaignId]);
+      // Fully restore original rewards state (quantities and weights)
+      for (const r of savedOriginalRewards) {
+        await pool.query(`
+          UPDATE rewards 
+          SET remaining_quantity = $1, distributed_quantity = $2, probability_weight = $3
+          WHERE id = $4;
+        `, [r.remaining_quantity, r.distributed_quantity, r.probability_weight, r.id]);
+      }
     }
     server.close();
   });

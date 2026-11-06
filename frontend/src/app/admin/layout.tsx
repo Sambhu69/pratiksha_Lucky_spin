@@ -106,7 +106,7 @@ export default function AdminLayout({
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-white font-bold text-xs shadow-md shadow-amber-500/20 transition active:scale-95"
             >
               <span>🎯</span>
-              <span>लक्की स्पिन खोल्नुहोस् (Open Kiosk)</span>
+              <span>Open Kiosk</span>
               <span>↗</span>
             </a>
           </div>

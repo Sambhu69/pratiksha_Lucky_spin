@@ -99,7 +99,7 @@ describe('Business Logic & Fraud Prevention Integration Tests', () => {
     expect(json2.message).toContain('already utilized all allocated spins');
   });
 
-  it('2. Invoice Reuse Attack: Rejects registration when another customer claims the same invoice', async () => {
+  it('2. Phone Duplicate Guard: Rejects second registration attempt using the same phone number', async () => {
     // First registration
     const resA = await fetch(`${baseUrl}/kiosk/validate`, {
       method: 'POST',
@@ -107,24 +107,35 @@ describe('Business Logic & Fraud Prevention Integration Tests', () => {
       body: JSON.stringify({
         fullName: 'Customer A',
         phoneNumber: '9899999902',
-        invoiceReference: 'INV-POKHARA-100',
       }),
     });
     expect(resA.status).toBe(200);
 
-    // Second registration with different phone, identical invoice
+    // Spin executed for Customer A
+    const jsonA = await resA.json();
+    const customerIdA = jsonA.data.customerId;
+    await fetch(`${baseUrl}/spins/execute`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerId: customerIdA,
+        idempotencyKey: 'key-customer-a',
+      }),
+    });
+
+    // Second registration with identical phone number
     const resB = await fetch(`${baseUrl}/kiosk/validate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        fullName: 'Customer B',
-        phoneNumber: '9899999903',
-        invoiceReference: 'INV-POKHARA-100',
+        fullName: 'Customer A Again',
+        phoneNumber: '9899999902',
       }),
     });
     const jsonB = await resB.json();
-    expect(resB.status).toBe(409);
-    expect(jsonB.message).toContain('Invoice reference has already been used');
+    expect(resB.status).toBe(200);
+    expect(jsonB.data.eligible).toBe(false);
+    expect(jsonB.data.reason).toContain('already completed');
   });
 
   it('3. Idempotency Guard: Replaying the identical idempotencyKey returns cached outcome without extra deduction', async () => {

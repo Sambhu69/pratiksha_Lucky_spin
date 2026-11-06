@@ -8,7 +8,7 @@ interface VoucherModalProps {
   rewardNumber: number;
   transactionReference: string;
   customerName: string;
-  invoiceReference: string;
+  invoiceReference?: string;
   onReset: () => void;
 }
 
@@ -32,9 +32,11 @@ export default function VoucherModal({
           <h2 className="text-xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-amber-400 to-yellow-500 truncate">
             {customerName}
           </h2>
-          <p className="text-xs sm:text-sm text-slate-400">
-            Invoice: <span className="text-slate-200 font-semibold">{invoiceReference}</span>
-          </p>
+          {invoiceReference && (
+            <p className="text-xs sm:text-sm text-slate-400">
+              Ref: <span className="text-slate-200 font-semibold">{invoiceReference}</span>
+            </p>
+          )}
         </div>
 
         {/* Won Gift Card */}

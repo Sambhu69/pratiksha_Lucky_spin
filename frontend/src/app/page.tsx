@@ -12,7 +12,6 @@ interface CustomerSession {
   customerId: string;
   customerName: string;
   phoneNumber: string;
-  invoiceReference: string;
   remainingSpins: number;
 }
 
@@ -30,7 +29,6 @@ export default function KioskPage() {
   // Customer Form Inputs
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [invoiceReference, setInvoiceReference] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -58,7 +56,6 @@ export default function KioskPage() {
         body: JSON.stringify({
           fullName,
           phoneNumber,
-          invoiceReference,
         }),
       });
 
@@ -71,7 +68,6 @@ export default function KioskPage() {
         customerId: res.data.customerId,
         customerName: res.data.customerName || fullName,
         phoneNumber,
-        invoiceReference: invoiceReference.toUpperCase(),
         remainingSpins: res.data.remainingSpins,
       });
 
@@ -133,7 +129,6 @@ export default function KioskPage() {
   const handleReset = () => {
     setFullName('');
     setPhoneNumber('');
-    setInvoiceReference('');
     setErrorMsg('');
     setSession(null);
     setSpinResult(null);
@@ -185,9 +180,9 @@ export default function KioskPage() {
                 </div>
               )}
 
-              <form onSubmit={handleValidate} className="space-y-3.5 sm:space-y-4">
+              <form onSubmit={handleValidate} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1 sm:mb-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                     Customer Full Name
                   </label>
                   <input
@@ -196,12 +191,12 @@ export default function KioskPage() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="e.g. Ram Bahadur Thapa"
-                    className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
+                    className="w-full px-4 py-3 text-base bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1 sm:mb-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                     Nepal Mobile Number
                   </label>
                   <input
@@ -211,31 +206,17 @@ export default function KioskPage() {
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder="e.g. 9846012345"
-                    className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
+                    className="w-full px-4 py-3 text-base bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
                   />
-                  <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1">Must be 10 digits starting with 98 or 97.</p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1 sm:mb-1.5">
-                    Shop Bill / Invoice Number
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={invoiceReference}
-                    onChange={(e) => setInvoiceReference(e.target.value)}
-                    placeholder="e.g. INV-1049"
-                    className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 uppercase focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
-                  />
+                  <p className="text-[11px] text-slate-500 mt-1">10 digits starting with 98 or 97.</p>
                 </div>
 
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full mt-2 py-3.5 sm:py-4 px-4 sm:px-6 rounded-xl font-bold text-sm sm:text-base text-slate-950 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 active:scale-[0.99] transition shadow-lg shadow-amber-500/20 disabled:opacity-50"
+                  className="w-full mt-2 py-4 px-6 rounded-xl font-black text-base text-slate-950 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 active:scale-[0.99] transition shadow-lg shadow-amber-500/20 disabled:opacity-50 cursor-pointer"
                 >
-                  {isLoading ? 'Verifying Eligibility...' : 'Verify & Proceed to Spin →'}
+                  {isLoading ? 'Verifying...' : 'Verify & Proceed to Spin →'}
                 </button>
               </form>
             </div>
@@ -248,7 +229,7 @@ export default function KioskPage() {
               <div className="inline-flex items-center gap-2 sm:gap-3 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl bg-slate-900 border border-slate-800 shadow-md max-w-full">
                 <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 shrink-0 rounded-full bg-emerald-400 animate-pulse" />
                 <span className="text-xs sm:text-sm font-semibold text-slate-300 truncate">
-                  Spun by: <strong className="text-amber-300">{session?.customerName}</strong> <span className="hidden xs:inline">(Inv: {session?.invoiceReference})</span>
+                  Player: <strong className="text-amber-300">{session?.customerName}</strong>
                 </span>
               </div>
 
@@ -292,7 +273,6 @@ export default function KioskPage() {
               rewardNumber={spinResult.rewardNumber}
               transactionReference={spinResult.transactionReference}
               customerName={session.customerName}
-              invoiceReference={session.invoiceReference}
               onReset={handleReset}
             />
           )}

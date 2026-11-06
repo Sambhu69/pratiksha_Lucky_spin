@@ -64,13 +64,12 @@ export async function runMigrations() {
         campaign_id UUID NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
         customer_name VARCHAR(100) NOT NULL,
         phone_number VARCHAR(20) NOT NULL,
-        invoice_reference VARCHAR(50) NOT NULL,
+        invoice_reference VARCHAR(50),
         eligibility_status VARCHAR(20) NOT NULL CHECK (eligibility_status IN ('ELIGIBLE', 'BLOCKED', 'COMPLETED')),
         allowed_spins INTEGER NOT NULL DEFAULT 1 CHECK (allowed_spins >= 1),
         spins_used INTEGER NOT NULL DEFAULT 0 CHECK (spins_used >= 0),
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        UNIQUE(campaign_id, phone_number),
-        UNIQUE(campaign_id, invoice_reference)
+        UNIQUE(campaign_id, phone_number)
       );
       ALTER TABLE customers ADD COLUMN IF NOT EXISTS spins_used INTEGER NOT NULL DEFAULT 0 CHECK (spins_used >= 0);
     `);

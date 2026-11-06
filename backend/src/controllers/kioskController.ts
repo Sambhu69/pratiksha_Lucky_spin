@@ -10,11 +10,7 @@ const validateCustomerSchema = z.object({
     .string()
     .trim()
     .regex(/^(98|97)\d{8}$/, 'Must be a valid 10-digit Nepal mobile number starting with 98 or 97'),
-  invoiceReference: z
-    .string()
-    .min(3, 'Invoice reference must be at least 3 characters long')
-    .trim()
-    .toUpperCase(),
+  invoiceReference: z.string().trim().optional(),
 });
 
 export async function validateCustomer(req: Request, res: Response) {
@@ -46,7 +42,7 @@ export async function validateCustomer(req: Request, res: Response) {
 
   // 2. Check if this customer (by phone_number) already registered in this campaign
   const customerRes = await pool.query(`
-    SELECT id, customer_name, phone_number, invoice_reference, eligibility_status, allowed_spins, spins_used
+    SELECT id, customer_name, phone_number, eligibility_status, allowed_spins, spins_used
     FROM customers
     WHERE campaign_id = $1 AND phone_number = $2;
   `, [campaignId, phoneNumber]);
@@ -54,18 +50,10 @@ export async function validateCustomer(req: Request, res: Response) {
   if (customerRes.rows.length > 0) {
     const existing = customerRes.rows[0];
 
-    // Check if invoice number matches or if they are trying to reuse a different invoice
-    if (existing.invoice_reference !== invoiceReference) {
-      return sendSuccess(res, {
-        eligible: false,
-        reason: `This phone number is already registered under Invoice ${existing.invoice_reference}. Only 1 invoice is permitted per customer.`,
-      });
-    }
-
     if (existing.eligibility_status === 'BLOCKED') {
       return sendSuccess(res, {
         eligible: false,
-        reason: 'This customer has been marked as blocked. Please speak with the counter supervisor.',
+        reason: 'This customer has been marked as blocked.',
       });
     }
 
@@ -73,7 +61,7 @@ export async function validateCustomer(req: Request, res: Response) {
     if (remainingSpins <= 0 || existing.eligibility_status === 'COMPLETED') {
       return sendSuccess(res, {
         eligible: false,
-        reason: 'Customer has already used their spin for this invoice.',
+        reason: 'Customer has already completed their spin.',
         customerId: existing.id,
         remainingSpins: 0,
       });
@@ -88,30 +76,19 @@ export async function validateCustomer(req: Request, res: Response) {
     });
   }
 
-  // 3. Customer is new — check if invoice number was claimed by someone else
-  const invoiceRes = await pool.query(`
-    SELECT phone_number, customer_name
-    FROM customers
-    WHERE campaign_id = $1 AND invoice_reference = $2;
-  `, [campaignId, invoiceReference]);
-
-  if (invoiceRes.rows.length > 0) {
-    throw AppError.conflict('Invoice reference has already been used.');
-  }
-
-  // 4. Register new eligible customer
+  // 3. Register new eligible customer
   const insertRes = await pool.query(`
     INSERT INTO customers (
       campaign_id, customer_name, phone_number, invoice_reference,
       eligibility_status, allowed_spins, spins_used
     )
     VALUES ($1, $2, $3, $4, 'ELIGIBLE', $5, 0)
-    RETURNING id, customer_name, phone_number, invoice_reference, allowed_spins, spins_used;
+    RETURNING id, customer_name, phone_number, allowed_spins, spins_used;
   `, [
     campaignId,
     fullName,
     phoneNumber,
-    invoiceReference,
+    invoiceReference || null,
     campaign.maximum_spins_per_customer || 1,
   ]);
 

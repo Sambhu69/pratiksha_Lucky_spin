@@ -11,6 +11,10 @@ body {
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-rgb));
   min-height: 100vh;
-  user-select: none; /* Prevent accidental text highlighting in kiosk mode */
+}
+
+input, textarea, select {
+  user-select: auto !important;
+  -webkit-user-select: auto !important;
 }
 

@@ -833,9 +833,10 @@ export default function AdminDashboardPage() {
                   <input
                     type="number"
                     min="0"
+                    step="1"
                     value={editRemainingQty}
                     onChange={(e) => setEditRemainingQty(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm font-mono focus:outline-none focus:border-amber-400"
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm font-mono focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 selection:bg-amber-500"
                   />
                   <p className="text-[10px] text-slate-500 mt-1">0 = Exhausted</p>
                 </div>
@@ -846,11 +847,11 @@ export default function AdminDashboardPage() {
                   </label>
                   <input
                     type="number"
-                    step="0.1"
+                    step="any"
                     min="0.1"
                     value={editProbWeight}
                     onChange={(e) => setEditProbWeight(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm font-mono focus:outline-none focus:border-amber-400"
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm font-mono focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 selection:bg-amber-500"
                   />
                   <p className="text-[10px] text-slate-500 mt-1">Relative win chance</p>
                 </div>
